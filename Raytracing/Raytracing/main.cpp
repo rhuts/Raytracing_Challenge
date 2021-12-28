@@ -15,7 +15,7 @@
 //
 // Config
 // 
-static const int    s_image_width = 1024;
+static const int    s_image_width = 512;
 
 
 

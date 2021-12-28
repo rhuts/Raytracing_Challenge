@@ -6,6 +6,7 @@
 #include "ErrorCheck.h"
 #include "Vec3.h"
 #include "Ray.h"
+#include "Camera.h"
 
 
 class Renderer
@@ -21,7 +22,8 @@ public:
 		m_focal_length(1.0),
 		m_device_context(nullptr),
 		m_frame_buffer(nullptr),
-		m_frame_num(0)
+		m_frame_num(0),
+		m_camera()
 	{}
 
 	RESULT		Init();
@@ -36,6 +38,8 @@ public:
 	int m_image_height;
 
 	// camera
+	Camera m_camera;
+
 	double m_viewport_height;
 	double m_viewport_width;
 	double m_focal_length;

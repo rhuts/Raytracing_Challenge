@@ -28,10 +28,10 @@ public:
 inline double hit_sphere(const point3& center, double radius, const Ray& r)
 {
 	vec3 OC = r.get_origin() - center;
-	double a = dot(r.get_direction(), r.get_direction());
-	double b = 2.0 * dot(OC, r.get_direction());
-	double c = dot(OC, OC) - radius * radius;
-	double discriminant = b * b - 4 * a * c;
+	double a = r.get_direction().length_squared();
+	double half_b = dot(OC, r.get_direction());
+	double c = OC.length_squared() - radius * radius;
+	double discriminant = half_b * half_b - a * c;
 
 	if (discriminant < 0)
 	{
@@ -39,25 +39,8 @@ inline double hit_sphere(const point3& center, double radius, const Ray& r)
 	}
 	else
 	{
-		return (-b - sqrt(discriminant)) / (2.0 * a);
+		return (-half_b - sqrt(discriminant)) / a;
 	}
-}
-
-inline color ray_color(const Ray& r)
-{
-	double t = hit_sphere(point3(0, 0, -1), 0.5, r);
-
-	// In front of camera
-	if (t > 0.0)
-	{
-		vec3 N = unit_vector(r.at(t) - vec3(0, 0, -1));
-		return 0.5 * color(N.x() + 1, N.y() +1, N.z() + 1);
-	}
-
-	// linear interpolation
-	vec3 unit_direction = unit_vector(r.get_direction());
-	t = 0.5 * (unit_direction.y() + 1.0);
-	return (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0);
 }
 
 #endif

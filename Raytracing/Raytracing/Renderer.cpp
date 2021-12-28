@@ -1,6 +1,9 @@
 #include <chrono>
 
 #include "Renderer.h"
+#include "Sphere.h"
+#include "HittableList.h"
+#include "Common.h"
 
 using std::chrono::high_resolution_clock;
 using std::chrono::duration;
@@ -17,10 +20,29 @@ RESULT Renderer::Init()
 	return RESULT::RES_OK;
 }
 
+inline color ray_color(const Ray& r, const HittableList& world)
+{
+	hit_record rec;
+	if (world.hit(r, 0, infinity, rec))
+	{
+		return 0.5 * (rec.normal + color(1, 1, 1));
+	}
+
+	// linear interpolation
+	vec3 unit_direction = unit_vector(r.get_direction());
+	double t = 0.5 * (unit_direction.y() + 1.0);
+	return (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0);
+}
+
 void Renderer::CastRays()
 {
 	// Timing
 	std::chrono::steady_clock::time_point start_time = high_resolution_clock::now();
+
+	// Create the objects in the world
+	HittableList world;
+	world.add(make_shared<Sphere>(point3(0, 0, -1), 0.5));
+	world.add(make_shared<Sphere>(point3(0, -100.5, -1), 100)); // the ground
 
 	point3 origin = point3(0, 0, 0);
 	vec3 horizontal = vec3(m_viewport_width, 0, 0);
@@ -40,7 +62,7 @@ void Renderer::CastRays()
 			int64_t idx = (m_image_height - j - 1) * m_image_width + i;
 
 			Ray r(origin, lower_left_corner + u * horizontal + v * vertical - origin);
-			color pixel_color = ray_color(r);
+			color pixel_color = ray_color(r, world);
 			write_color_as_colorref(m_frame_buffer[idx], pixel_color);
 		}
 	}
