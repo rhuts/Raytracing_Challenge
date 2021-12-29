@@ -46,9 +46,9 @@ void Renderer::CastRays()
 
 	// Create the objects in the world
 	HittableList world;
-	world.add(make_shared<Sphere>(point3(0, 0, -1), 0.5));
+	world.add(make_shared<Sphere>(point3(0, 0, -1), 0.4));
 	world.add(make_shared<Sphere>(point3(0, -100.5, -1), 100)); // the ground
-
+	
 	// Fill the bitmap
 	for (int j = m_image_height - 1; j >= 0; j--)
 	{
@@ -105,6 +105,10 @@ void Renderer::PresentToDisplay()
 	// Copy image from the temp HDC into the destination HDC
 	int res = BitBlt(m_device_context, 2500, 10, m_image_width, m_image_height, hdcSrc, 0, 0, SRCCOPY);
 	CHECK_ERROR(res != 0, "Failed to BitBlt.");
+	
+	// Delete created objects
+	DeleteObject(map);
+	DeleteDC(hdcSrc);
 }
 
 RESULT Renderer::StartRender()
@@ -130,7 +134,6 @@ RESULT Renderer::Destroy()
 {
 	// Cleanup
 	ReleaseDC(0, m_device_context);
-	//DeleteDC(hdcSrc);
 
 	// TODO, revert desktop to old image from before overwriting
 	// better yet, render to a new window instead of directly to desktop
