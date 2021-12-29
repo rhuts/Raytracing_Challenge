@@ -8,7 +8,7 @@ enum class RESULT
 };
 
 // Check fails if e is false;
-#define CHECK_ERROR(e, msg) \
+#define LOG_ERROR(e, msg) \
 if (!(e)) \
 {std::cout << "[ERROR] " << msg << " " << __FUNCTION__ << ":" << __LINE__ << std::endl;}
 

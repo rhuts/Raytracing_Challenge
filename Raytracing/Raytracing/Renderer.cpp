@@ -3,18 +3,24 @@
 #include "Renderer.h"
 #include "Sphere.h"
 #include "HittableList.h"
+#include "Window.h"
 
 using std::chrono::high_resolution_clock;
 using std::chrono::duration;
 
 RESULT Renderer::Init()
 {
-	// Get Desktop Device Context
-	m_device_context = GetDC(0);
+	// Window for rendering
+	m_window = new Window(m_image_width, m_image_height);
+	LOG_ERROR(m_window != nullptr, "Failed to create a window for rendering.");
+
+	// Device Context
+	m_device_context = GetDC(m_window->GetHWindow());
+	LOG_ERROR(m_device_context != nullptr, "Failed to get device context.");
 
 	// Allocate frame buffer
 	m_frame_buffer = (COLORREF*) calloc(m_image_width * m_image_height, sizeof(COLORREF));
-	CHECK_ERROR(m_frame_buffer != nullptr, "Failed to allocate memory for frame buffer.");
+	LOG_ERROR(m_frame_buffer != nullptr, "Failed to allocate memory for frame buffer.");
 
 	return RESULT::RES_OK;
 }
@@ -93,18 +99,18 @@ void Renderer::PresentToDisplay()
 {
 	// Create a bitmap using the pixels in the bitmap array
 	HBITMAP map = CreateBitmap(m_image_width, m_image_height, 1, 8 * 4, (void*)m_frame_buffer);
-	CHECK_ERROR(map != nullptr, "Failed to create bitmap.");
+	LOG_ERROR(map != nullptr, "Failed to create bitmap.");
 
 	// Create a temp HDC to copy the generated bitmap into
 	HDC hdcSrc = CreateCompatibleDC(m_device_context);
-	CHECK_ERROR(hdcSrc != nullptr, "Failed to CreateCompatibleDC.");
+	LOG_ERROR(hdcSrc != nullptr, "Failed to CreateCompatibleDC.");
 
 	// Copy bitmap into HDC
 	SelectObject(hdcSrc, map);
 
 	// Copy image from the temp HDC into the destination HDC
-	int res = BitBlt(m_device_context, 2500, 10, m_image_width, m_image_height, hdcSrc, 0, 0, SRCCOPY);
-	CHECK_ERROR(res != 0, "Failed to BitBlt.");
+	int res = BitBlt(m_device_context, 0, 0, m_image_width, m_image_height, hdcSrc, 0, 0, SRCCOPY);
+	LOG_ERROR(res != 0, "Failed to BitBlt.");
 	
 	// Delete created objects
 	DeleteObject(map);
@@ -134,9 +140,7 @@ RESULT Renderer::Destroy()
 {
 	// Cleanup
 	ReleaseDC(0, m_device_context);
-
-	// TODO, revert desktop to old image from before overwriting
-	// better yet, render to a new window instead of directly to desktop
+	delete m_window;
 
 	return RESULT::RES_OK;
 }

@@ -24,8 +24,8 @@ int main()
     RESULT res = RESULT::RES_OK;
     Renderer renderer(s_image_width);
     res = renderer.Init();
-    CHECK_ERROR(res == RESULT::RES_OK, "Failed to Initialize Renderer.");
-    
+    LOG_ERROR(res == RESULT::RES_OK, "Failed to Initialize Renderer.");
+
     // Start Rendering
     renderer.StartRender();
 

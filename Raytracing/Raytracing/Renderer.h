@@ -5,6 +5,7 @@
 
 #include "ErrorCheck.h"
 #include "Camera.h"
+#include "Window.h"
 
 
 class Renderer
@@ -44,6 +45,7 @@ private:
 	HDC				m_device_context;
 	COLORREF*		m_frame_buffer;
 	int				m_frame_num;
+	Window*			m_window;
 	//HittableList	m_scene; // TODO
 
 	// ray tracing settings
