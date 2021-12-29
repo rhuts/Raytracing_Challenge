@@ -15,8 +15,7 @@
 //
 // Config
 // 
-static const int    s_image_width = 512;
-
+static const int    s_image_width = 1024;
 
 
 int main()
@@ -28,7 +27,7 @@ int main()
     CHECK_ERROR(res == RESULT::RES_OK, "Failed to Initialize Renderer.");
     
     // Start Rendering
-    renderer.Render();
+    renderer.StartRender();
 
     // Clean up
     renderer.Destroy();

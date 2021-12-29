@@ -12,6 +12,8 @@
 #include <Windows.h>
 
 using std::sqrt;
+inline double random_double();
+inline double random_double(double min, double max);
 
 class vec3
 {
@@ -27,31 +29,37 @@ public:
     double operator[](int i) const { return e[i]; }
     double& operator[](int i) { return e[i]; }
 
-    vec3& operator+=(const vec3& v) {
+    vec3& operator+=(const vec3& v)
+    {
         e[0] += v.e[0];
         e[1] += v.e[1];
         e[2] += v.e[2];
         return *this;
     }
 
-    vec3& operator*=(const double t) {
+    vec3& operator*=(const double t)
+    {
         e[0] *= t;
         e[1] *= t;
         e[2] *= t;
         return *this;
     }
 
-    vec3& operator/=(const double t) {
+    vec3& operator/=(const double t)
+    {
         return *this *= 1 / t;
     }
 
-    double length() const {
+    double length() const
+    {
         return sqrt(length_squared());
     }
 
-    double length_squared() const {
+    double length_squared() const
+    {
         return e[0] * e[0] + e[1] * e[1] + e[2] * e[2];
     }
+       
 
 public:
     double e[3];
@@ -109,18 +117,55 @@ inline vec3 unit_vector(vec3 v) {
     return v / v.length();
 }
 
-// Used for rendering to screen
-inline void write_color_as_colorref(COLORREF& dest, color c)
+inline double clamp(double x, double min, double max)
 {
-    // COLORREF is 0x00rrggbb
+    if (x < min) return min;
+    if (x > max) return max;
+    return x;
+}
 
-    int ir = static_cast<int>(255 * c.e[0]);
-    int ig = static_cast<int>(255 * c.e[1]);
-    int ib = static_cast<int>(255 * c.e[2]);
 
-    dest |= ir << 16;
-    dest |= ig << 8;
-    dest |= ib;
+// [0, 1)
+inline double random_double()
+{
+    return rand() / (RAND_MAX + 1.0);
+}
+
+// [min, max)
+inline double random_double(double min, double max)
+{
+    return min + (max - min) * random_double();
+}
+
+inline static vec3 random()
+{
+    return vec3(random_double(), random_double(), random_double());
+}
+
+inline static vec3 random(double min, double max)
+{
+    return vec3(random_double(min, max), random_double(min, max), random_double(min, max));
+}
+
+inline vec3 random_in_unit_sphere()
+{
+    while (true)
+    {
+        vec3 p = random(-1, 1);
+        if (p.length_squared() >= 1)
+        {
+            continue;
+        }
+        else
+        {
+            return p;
+        }
+    }
+}
+
+inline vec3 random_unit_vector()
+{
+    return unit_vector(random_in_unit_sphere());
 }
 
 #endif
