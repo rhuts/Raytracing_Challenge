@@ -78,6 +78,7 @@ void Renderer::CastRays()
 			WritePixelAsColorRef(m_frame_buffer[idx], pixel_color);
 		}
 
+#if defined _DEBUG
 		// Visual aid: mark next row before rendering
 		for (int i = 0; i < m_image_width && j > 0; i++)
 		{
@@ -85,6 +86,7 @@ void Renderer::CastRays()
 			int64_t idx = (m_image_height - j) * m_image_width + i;
 			WritePixelAsColorRef(m_frame_buffer[idx], pixel_color);
 		}
+#endif
 
 		PresentToDisplay();
 	}
