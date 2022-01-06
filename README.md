@@ -1,5 +1,7 @@
 # Raytracing
 
+![Diffuse Material Sphere Render](https://github.com/rhuts/Raytracing_Challenge/blob/master/media/raytracing_diffuse_matrial_sphere.png)
+
 ## Goals of This Project
 - Implement raytracing in one weekend (3 days)
 - Based on the course by Peter Shirley [here](https://raytracing.github.io/)
