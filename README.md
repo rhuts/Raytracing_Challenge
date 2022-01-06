@@ -2,12 +2,17 @@
 
 ![Diffuse Material Sphere Render](https://github.com/rhuts/Raytracing_Challenge/blob/master/media/raytracing_diffuse_matrial_sphere.png)
 
-## Goals of This Project
-- Implement raytracing in one weekend (3 days)
-- Based on the course by Peter Shirley [here](https://raytracing.github.io/)
-- Additionally, render to the screen instead of writing out to a PPM image
-- Also, dynamically change rendering parameters / styles / etc. with hotkeys
-- And, make it multithreaded
+## Goals of The Challenge (Based on [course](https://raytracing.github.io/) by Peter Shirley)
+- [x] Implement raytracing in __ONE__ weekend (3 days)
+- [x] Learn the fundamentals of path tracers and expand on them further
+
+## Additional Continuous Development (In Progress)
+- [x] Render to the screen instead of writing out to a PPM image
+- [ ] Implement and switch between additional rendering methods using hotkey
+  - [x] Single threaded *(CPU)*
+  - [ ] Multi-threaded *(CPU)*
+  - [ ] Compute Shader *(GPU)*
+
 
 ## Getting Started
 1. Build the Visual Studio solution `Raytracing.sln`
