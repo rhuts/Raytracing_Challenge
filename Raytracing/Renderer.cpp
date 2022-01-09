@@ -45,7 +45,7 @@ inline color ray_color(const Ray& r, const HittableList& world, int bounces_rema
 	return (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0);
 }
 
-void Renderer::CastRays()
+void Renderer::CastRays(int start_y, int end_y)
 {
 	// Timing
 	std::chrono::steady_clock::time_point start_time = high_resolution_clock::now();
@@ -56,7 +56,7 @@ void Renderer::CastRays()
 	world.add(make_shared<Sphere>(point3(0, -100.5, -1), 100)); // the ground
 	
 	// Fill the bitmap
-	for (int j = m_image_height - 1; j >= 0; j--)
+	for (int j = end_y - 1; j >= start_y; j--)
 	{
 		// Show progress
 		std::cerr << "\rScanlines remaining: " << (m_image_height - j) << ' ' << "/ " << m_image_height << "\t\t\t\t" << std::flush;
@@ -78,7 +78,6 @@ void Renderer::CastRays()
 			WritePixelAsColorRef(m_frame_buffer[idx], pixel_color);
 		}
 
-#if defined _DEBUG
 		// Visual aid: mark next row before rendering
 		for (int i = 0; i < m_image_width && j > 0; i++)
 		{
@@ -86,7 +85,6 @@ void Renderer::CastRays()
 			int64_t idx = (m_image_height - j) * m_image_width + i;
 			WritePixelAsColorRef(m_frame_buffer[idx], pixel_color);
 		}
-#endif
 
 		PresentToDisplay();
 	}
@@ -124,13 +122,20 @@ RESULT Renderer::StartRender()
 	// Render loop
 	while (true)
 	{
-		CastRays();
+		CastRays(0, m_image_height);
 
 		// Exit by pressing 'Q' key
-		SHORT key_state = GetAsyncKeyState(0x51);
-		if (key_state & 1 || key_state & 0x80)
+		SHORT key_state_q = GetAsyncKeyState(0x51);
+		if (key_state_q & 1 || key_state_q & 0x80)
 		{
 			return RESULT::RES_OK;
+		}
+
+		// Switch modes with the 'M' key
+		SHORT key_state_m = GetAsyncKeyState(0x4D);
+		if (key_state_m & 1 || key_state_m & 0x80)
+		{
+			ToggleRenderMode();
 		}
 
 		m_frame_num++;
@@ -168,4 +173,10 @@ void Renderer::WritePixelAsColorRef(COLORREF& dest, color c)
 	dest |= ir << 16;
 	dest |= ig << 8;
 	dest |= ib;
+}
+
+void Renderer::ToggleRenderMode()
+{
+	m_render_mode = static_cast<RENDER_MODE>((m_render_mode + 1) % RENDER_MODE_COUNT);
+	printf("Render mode set to: %s\n", render_mode_to_text[m_render_mode]);
 }
