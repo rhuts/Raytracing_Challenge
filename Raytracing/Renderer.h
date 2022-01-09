@@ -8,6 +8,8 @@
 #include "Camera.h"
 #include "Window.h"
 
+using std::chrono::duration;
+
 enum RENDER_MODE
 {
 	RENDER_MODE_CPU_SINGLE_THREAD	= 0,
@@ -37,7 +39,8 @@ public:
 		m_camera(),
 		m_sample_size_per_pixel(10),
 		m_max_bounces(10),
-		m_render_mode(RENDER_MODE_CPU_SINGLE_THREAD)
+		m_render_mode(RENDER_MODE_CPU_SINGLE_THREAD),
+		m_max_threads(1)
 	{}
 
 	RESULT		Init();
@@ -59,11 +62,13 @@ private:
 	Camera m_camera;
 
 	// display
-	HDC				m_device_context;
-	COLORREF*		m_frame_buffer;
-	int				m_frame_num;
-	Window*			m_window;
-	RENDER_MODE		m_render_mode;
+	HDC								m_device_context;
+	COLORREF*						m_frame_buffer;
+	int								m_frame_num;
+	Window*							m_window;
+	RENDER_MODE						m_render_mode;
+	int								m_max_threads;
+	duration<double, std::milli>	m_frame_render_duration;
 	//HittableList	m_scene; // TODO
 
 	// ray tracing settings

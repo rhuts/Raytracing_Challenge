@@ -1,10 +1,12 @@
 #include <chrono>
+#include <thread>
 
 #include "Renderer.h"
 #include "Sphere.h"
 #include "HittableList.h"
 #include "Window.h"
 
+using namespace std;
 using std::chrono::high_resolution_clock;
 using std::chrono::duration;
 
@@ -21,6 +23,8 @@ RESULT Renderer::Init()
 	// Allocate frame buffer
 	m_frame_buffer = (COLORREF*) calloc(m_image_width * m_image_height, sizeof(COLORREF));
 	LOG_ERROR(m_frame_buffer != nullptr, "Failed to allocate memory for frame buffer.");
+
+	m_max_threads = thread::hardware_concurrency();
 
 	return RESULT::RES_OK;
 }
@@ -47,8 +51,8 @@ inline color ray_color(const Ray& r, const HittableList& world, int bounces_rema
 
 void Renderer::CastRays(int start_y, int end_y)
 {
-	// Timing
-	std::chrono::steady_clock::time_point start_time = high_resolution_clock::now();
+	// Timing, removed for now while implementing other render methods
+	//std::chrono::steady_clock::time_point start_time = high_resolution_clock::now();
 
 	// Create the objects in the world
 	HittableList world;
@@ -58,15 +62,17 @@ void Renderer::CastRays(int start_y, int end_y)
 	// Fill the bitmap
 	for (int j = end_y - 1; j >= start_y; j--)
 	{
-		// Show progress
-		std::cerr << "\rScanlines remaining: " << (m_image_height - j) << ' ' << "/ " << m_image_height << "\t\t\t\t" << std::flush;
+		// Show progress for slower render methods
+		if (RENDER_MODE_CPU_SINGLE_THREAD == m_render_mode)
+		{
+			std::cerr << "\rScanlines remaining: " << (m_image_height - j) << ' ' << "/ " << m_image_height << "\t\t\t\t" << std::flush;
+		}
 
 		for (int i = 0; i < m_image_width; i++)
 		{
 			color pixel_color(0, 0, 0);
 			for (int k = 0; k < m_sample_size_per_pixel; k++)
 			{
-
 				double u = double(i) / (m_image_width - 1); // U from 0 to 1
 				double v = double(j) / (m_image_height - 1); // V from 1 to 0
 
@@ -79,20 +85,34 @@ void Renderer::CastRays(int start_y, int end_y)
 		}
 
 		// Visual aid: mark next row before rendering
-		for (int i = 0; i < m_image_width && j > 0; i++)
+		// 
+		// Note: the horizontal progress lines will be incomplete for the threads
+		//		 other than the presenting thread since the thread that was elected
+		//		 to present will present the frame buffer before the other threads
+		//		 have finished drawing their process bars
 		{
-			color pixel_color(1, 0, 0);
-			int64_t idx = (m_image_height - j) * m_image_width + i;
-			WritePixelAsColorRef(m_frame_buffer[idx], pixel_color);
+			for (int i = 0; i < m_image_width && j > 0 && j > start_y; i++)
+			{
+				color pixel_color(1, 0, 0);
+				int64_t idx = (m_image_height - j) * m_image_width + i;
+				WritePixelAsColorRef(m_frame_buffer[idx], pixel_color);
+			}
 		}
 
-		PresentToDisplay();
+
+		// all threads will be able to write the the frame buffer
+		// but just one thread will be elected to present it
+		if (start_y == 0)
+		{
+			PresentToDisplay();
+			//std::cout << std::endl << "\t(" << m_frame_render_duration.count() << ") ms\n\n";
+		}
 	}
 
 	// Timing
-	std::chrono::steady_clock::time_point end_time = high_resolution_clock::now();
-	duration<double, std::milli> ms_double = end_time - start_time;
-	std::cout << std::endl << "\t(" << ms_double.count() << ") ms\n\n";
+	//std::chrono::steady_clock::time_point end_time = high_resolution_clock::now();
+	//duration<double, std::milli> ms_double = end_time - start_time;
+	//m_frame_render_duration = ms_double;
 }
 
 void Renderer::PresentToDisplay()
@@ -122,21 +142,38 @@ RESULT Renderer::StartRender()
 	// Render loop
 	while (true)
 	{
-		CastRays(0, m_image_height);
+		switch (m_render_mode)
+		{
+		case RENDER_MODE_GPU_COMPUTE: // not implemented yet, fall back to CPU single threaded
+
+		case RENDER_MODE_CPU_SINGLE_THREAD:
+			CastRays(0, m_image_height);
+			break;
+
+		case RENDER_MODE_CPU_MULTI_THREAD:
+			vector<thread> threads;
+			for (int i = 0; i < m_max_threads; i++)
+			{
+				int start_y = i * ((m_image_height + m_max_threads - 1) / m_max_threads);
+				int end_y = min(m_image_height - 1, start_y + (m_image_height + m_max_threads - 1) / m_max_threads);
+				threads.push_back(thread(&Renderer::CastRays, this, start_y, end_y));
+			}
+
+			for (int i = 0; i < threads.size(); i++)
+			{
+				threads[i].join();
+			}
+			break;
+
+		}
 
 		// Exit by pressing 'Q' key
-		SHORT key_state_q = GetAsyncKeyState(0x51);
-		if (key_state_q & 1 || key_state_q & 0x80)
-		{
-			return RESULT::RES_OK;
-		}
+		SHORT key_state = GetAsyncKeyState(0x51);
+		if (key_state & 1 || key_state & 0x80) { return RESULT::RES_OK; }
 
 		// Switch modes with the 'M' key
-		SHORT key_state_m = GetAsyncKeyState(0x4D);
-		if (key_state_m & 1 || key_state_m & 0x80)
-		{
-			ToggleRenderMode();
-		}
+		key_state = GetAsyncKeyState(0x4D);
+		if (key_state & 1 || key_state & 0x80) { ToggleRenderMode(); }
 
 		m_frame_num++;
 	}
@@ -178,5 +215,5 @@ void Renderer::WritePixelAsColorRef(COLORREF& dest, color c)
 void Renderer::ToggleRenderMode()
 {
 	m_render_mode = static_cast<RENDER_MODE>((m_render_mode + 1) % RENDER_MODE_COUNT);
-	printf("Render mode set to: %s\n", render_mode_to_text[m_render_mode]);
+	printf("\nRender mode set to: (%s)\n", render_mode_to_text[m_render_mode]);
 }
