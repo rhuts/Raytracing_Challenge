@@ -10,7 +10,7 @@
 - [x] Render to the screen instead of writing out to a PPM image
 - [ ] Implement and switch between additional rendering methods using hotkey
   - [x] Single threaded *(CPU)*
-  - [ ] Multi-threaded *(CPU)*
+  - [x] Multi-threaded *(CPU)*
   - [ ] Compute Shader *(GPU)*
 
 
