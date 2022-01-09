@@ -127,7 +127,8 @@ RESULT Renderer::StartRender()
 		CastRays();
 
 		// Exit by pressing 'Q' key
-		if (GetKeyState('Q') & 0x8000/*Check if high-order bit is set (1 << 15)*/)
+		SHORT key_state = GetAsyncKeyState(0x51);
+		if (key_state & 1 || key_state & 0x80)
 		{
 			return RESULT::RES_OK;
 		}
