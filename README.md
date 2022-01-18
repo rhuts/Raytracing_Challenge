@@ -18,3 +18,4 @@
 1. Build the Visual Studio solution `Raytracing.sln`
 1. Run
 1. Press `'Q'` key to quit
+1. Press `'M'` key to switch rendering modes
